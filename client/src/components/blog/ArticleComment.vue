@@ -1,7 +1,7 @@
 <template>
     <div id='comment'>
         <div class='newComment'>
-            <img :src="'../../../../static/' + imgName +'.jpg'"/>
+            <img :src="'../../../static/' + imgName +'.jpg'"/>
             <textarea spellcheck='false' placeholder='说点什么吧...' v-model='content' id='reply' ref='textBox'></textarea>
             <div class="inputBox">
                 <input type='text' placeholder='邮箱 (用于通知)' v-model='address'/>
@@ -36,7 +36,7 @@
                             </i> {{comment.like}}
                         </p>
                     </div>
-                    <img :src="'../../../../static/' + comment.imgName + '.jpg'"/>
+                    <img :src="'../../../static/' + comment.imgName + '.jpg'"/>
                 </div>
             </div>
             <p v-show='comments.length === 0' class='nocomment'>哎，没人理我 :(</p>

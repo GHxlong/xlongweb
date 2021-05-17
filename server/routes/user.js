@@ -40,4 +40,15 @@ router.post('/api/singup', confirmToken, (req, res) => {
         })
     })
 })
+
+router.post('/api/admin/login', (req, res) => {
+    res.status(200).send('singup successfully')
+})
+
+router.get('/api/content/posts', (req, res) => {
+    res.status(200).send({
+        content: ''
+    })
+})
+
 module.exports = router

@@ -43,10 +43,10 @@ export default {
     createArticle ({ state, commit }) {
         commit('isSaving_toggle', false)
         return Vue.http.post('/api/create_article', state.article)
-        .then(() => {
-            commit('isSaving_toggle', true)
-            router.push({ name: 'home' })
-        }, () => { alert('保存失败') }).catch((err) => { console.log(err) })
+            .then(() => {
+                commit('isSaving_toggle', true)
+                router.push({ name: 'home' })
+            }, () => { alert('保存失败') }).catch((err) => { console.log(err) })
     },
     getAllArticles ({ commit }, payload) {
         commit('moreArticle_toggle', true)
@@ -165,6 +165,10 @@ export default {
     sendMail ({ commit }, payload) {
         return Vue.http.post('/api/mail', payload).catch((err) => { console.log(err) })
     },
+    // email
+    contactMe ({ commit }, payload) {
+        return Vue.http.post('/api/contact_me', payload).catch((err) => { console.log(err) })
+    },
     // comment
     summitComment ({ commit }, payload) {
         return Vue.http.post('/api/comment', payload)
@@ -179,5 +183,11 @@ export default {
     updateLike ({ commit }, payload) {
         return Vue.http.patch('/api/comments/' + payload.id, { option: payload.option })
             .catch((err) => { console.log(err) })
+    },
+    getDocumentList ({ commit }, payload) {
+        return Vue.http.get('/api/document/all', { params: { payload } })
+            .then(response => {
+                commit('set_documents', response.data)
+            }).catch((err) => { console.log(err) })
     }
 }

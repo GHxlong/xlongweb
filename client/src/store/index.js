@@ -34,7 +34,8 @@ export default new Vuex.Store({
         totalArticles: 20,
         draft: {},
         drafts: {},
-        comments: []
+        comments: [],
+        doucments: []
     },
     getters,
     actions,

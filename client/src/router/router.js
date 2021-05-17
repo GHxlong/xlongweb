@@ -9,7 +9,8 @@ const Articles = resolve => require(['@/page/Articles'], resolve)
 const article = resolve => require(['@/page/article'], resolve)
 const SearchResult = resolve => require(['@/page/SearchResult'], resolve)
 const contact = resolve => require(['@/page/contact'], resolve)
-
+const Documents = resolve => require(['@/page/Documents'], resolve)
+const document = resolve => require(['@/page/document'], resolve)
 /** back */
 const Blogadmin = resolve => require(['@/layout/back/admin'], resolve)
 const Bloglogin = resolve => require(['@/page/blog-manage/login'], resolve)
@@ -31,6 +32,8 @@ const SearchPlaylists = () => import(/* webpackChunkName: "SearchPlaylists" */ '
 const SearchMvs = () => import(/* webpackChunkName: "SearchMvs" */ '@/page/search/mvs')
 const Mvs = () => import(/* webpackChunkName: "Mvs" */ '@/page/mvs')
 const Mv = () => import(/* webpackChunkName: "Mv" */ '@/page/mv')
+
+///////////////////// test ///////////////
 
 // 内容需要居中的页面
 export const layoutCenterNames = ['discovery', 'playlists', 'songs', 'mvs']
@@ -86,10 +89,11 @@ export default new Router({
         children: [
             { path: 'home', name: 'home', component: Home, meta: { title: '博客首页' } },
             { path: 'creaters', name: 'CreaterCenter', component: CreaterCenter, meta: { title: '创作中心' } },
-            { path: 'articles', name: 'articles', component: Articles, meta: { title: '学习笔记分享' } },
+            { path: 'articles', name: 'articles', component: Articles, meta: { title: '博客中心' } },
             { path: 'articles/:id', name: 'article', component: article },
             { path: 'contact', name: 'contact', component: contact, meta: { title: '联系站长' } },
             { path: 'searcharticles/:text', name: 'SearchResult', component: SearchResult, meta: { title: '搜索结果' } },
+            { path: 'documents', name: 'documents', component: Documents, meta: { title: '文档中心' } }
         ]
     },
     {
@@ -142,21 +146,27 @@ export default new Router({
         ]
     },
     {
+        path: '/document',
+        name: 'document',
+        component: document,
+        meta: { title: '文档预览' }
+    },
+    {
         path: '/login',
         name: 'login',
         component: Bloglogin,
-        meta: {title: '登录页面'}
+        meta: { title: '登录页面' }
     },
     {
         path: '/admin',
         redirect: '/admin/posts',
         component: Blogadmin,
         children: [
-            {path: 'posts', name: 'posts', component: Blogposts, meta: {requireAuth: true, title: '博客文章'}},
-            {path: 'editor', name: 'editor', component: Blogeditor, meta: {requireAuth: true, title: '编辑文章'}},
-            {path: 'drafts', name: 'drafts', component: Blogdrafts, meta: {requireAuth: true, title: '博客草稿'}},
-            {path: 'search', name: 'search', component: Blogsearch, meta: {requireAuth: true, title: '搜索结果'}},
-            {path: 'account', name: 'account', component: Blogaccount, meta: {requireAuth: true, title: '修改账户'}}
+            { path: 'posts', name: 'posts', component: Blogposts, meta: { requireAuth: true, title: '博客文章' } },
+            { path: 'editor', name: 'editor', component: Blogeditor, meta: { requireAuth: true, title: '编辑文章' } },
+            { path: 'drafts', name: 'drafts', component: Blogdrafts, meta: { requireAuth: true, title: '博客草稿' } },
+            { path: 'blogsearch', name: 'blogsearch', component: Blogsearch, meta: { requireAuth: true, title: '搜索结果' } },
+            { path: 'account', name: 'account', component: Blogaccount, meta: { requireAuth: true, title: '修改账户' } }
         ]
     }
     ],

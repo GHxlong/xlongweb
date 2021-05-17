@@ -9,14 +9,8 @@ module.exports = {
     devServer: {
       open: true,
       proxy: {
-        '/netease-api': {
-          target: '39.103.187.204:3000',
-          pathRewrite: { '^/netease-api': '' },
-          changeOrigin: true,
-          secure: false,
-        },
         '/api' : {
-            target: 'http://39.103.187.204:3000',
+            target: 'https://39.103.187.204:3000',
             pathRewrite: { '^/api': '/api' },
             changeOrigin: true
         }

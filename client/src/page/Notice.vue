@@ -4,10 +4,10 @@
             <p class="headline" id="callMe">Contact me</p>
         </a>
         <div class="email animated fadeIn">
-            <input type="text" placeholder=" 主题" v-model="subject"/>
-            <input type="text" placeholder=" 联系人" v-model="paper"/>
+            <input type="text" placeholder=" 邮件主题" v-model="subject"/>
+            <input type="text" placeholder=" 邮箱" v-model="address"/>
             <textarea placeholder="..." spellcheck="false" v-model="content"></textarea>
-            <button class="contactBtn" @click="send" :disabled="sendFlag">
+            <button class="sendEmail" @click="send" :disabled="sendFlag">
                 <span>{{sendFlag ? '发送中...' : '确认'}}</span>
             </button>
         </div>
@@ -20,21 +20,22 @@ export default {
     data () {
         return {
             subject: '',
-            paper: '',
+            address: '',
             content: '',
             sendFlag: false
         }
     },
     created () {
         this.set_headline({
-            content: '支持',
+            content: '通知',
             animation: 'animated rotateIn'
         })
     },
     methods: {
         ...mapMutations(['set_headline', 'set_dialog']),
-        ...mapActions(['contactMe']),
+        ...mapActions(['sendMail']),
         send () {
+            const re = /^[\w_-]+@[\w_-]+\.[\w\\.]+$/
             if (!this.subject || !this.content) {
                 this.set_dialog({
                     info: '还有选项没填(⊙o⊙)？',
@@ -42,21 +43,28 @@ export default {
                     show: true
                 })
                 return
+            } else if (!re.test(this.address)) {
+                this.set_dialog({
+                    info: '请正确填写邮箱地址',
+                    hasTwoBtn: false,
+                    show: true
+                })
+                return
             }
             this.sendFlag = true
-            this.contactMe({
+            this.sendMail({
                 subject: this.subject,
-                paper: this.paper,
+                address: this.address,
                 content: this.content
             }).then(() => {
                 this.subject = ''
                 this.content = ''
-                this.paper = ''
+                this.address = ''
                 this.sendFlag = false
             }).catch(() => {
                 this.sendFlag = false
                 this.set_dialog({
-                    info: 'sorry, 发送失败，请重新发送',
+                    info: 'sorry, 邮件发送失败，请重新发送',
                     hasTwoBtn: false,
                     show: true
                 })
@@ -103,7 +111,7 @@ export default {
             background: transparent;
             font-family: Georgia, "Microsoft YaHei", "微软雅黑",  STXihei, "华文细黑",  serif;
         }
-        .contactBtn {
+        .sendEmail {
             width: 6.25rem;
             margin-top: 0.625rem;
             margin-left: calc(100% - 6.25rem);

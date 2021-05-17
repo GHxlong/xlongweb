@@ -3,8 +3,7 @@
         <a href="" class="iconfont icon-iconsf"></a>
         <a href="" class="iconfont icon-github" ></a>
         <a href="" class="iconfont icon-cion15"></a>
-        <!-- <p>粤ICP备17036548号</p> -->
-        <p>Copyright @ 2017 | <router-link :to="{name: 'login'}" tag="span" class="login">登录/注册</router-link></p>
+        <p>Copyright @ 2021 | <a class="text-color" href="//www.beian.gov.cn/portal/registerSystemInfo?recordcode=2021005857" target="_blank">陕ICP备2021005857号 </a> | <router-link :to="{name: 'login'}" tag="span" class="login">登录/注册</router-link></p>
     </div>
 </template>
 

@@ -53,10 +53,58 @@ ArticleSchema.pre('save', function (next) {
     }
 })
 
+const LeaveMsgSchema = new Schema(
+    {
+        id: { type: Number, index: { unique: true } },
+        subject: String,
+        content: String,
+        date: Date,
+        paper: String
+    },
+    { versionKey: false }
+)
+LeaveMsgSchema.pre('save', function (next) {
+    var self = this
+    if (self.isNew) {
+        Sequence.increment('LeaveMssage', function (err, result) {
+            if (err) { throw err }
+            self.id = result.value.next
+            next()
+        })
+    } else {
+        next()
+    }
+})
+
+const FilesSchema = new Schema(
+    {
+        id: { type: Number, index: { unique: true } },
+        name: String,
+        type: String,
+        desc: String,
+        uploadDate: Date,
+        tags: [String]
+    },
+    { versionKey: false }
+)
+FilesSchema.pre('save', function (next) {
+    var self = this
+    if (self.isNew) {
+        Sequence.increment('Files', function (err, result) {
+            if (err) { throw err }
+            self.id = result.value.next
+            next()
+        })
+    } else {
+        next()
+    }
+})
 const Models = {
     User: mongoose.model('User', UserSchema),
     Article: mongoose.model('Article', ArticleSchema),
-    Comment: mongoose.model('Comment', CommentSchema)
+    Comment: mongoose.model('Comment', CommentSchema),
+    LeaveMessage: mongoose.model('LeaveMessage', LeaveMsgSchema),
+    Files: mongoose.model('Files', FilesSchema)
 }
 
 // 初始化数据
@@ -69,7 +117,7 @@ const initialize = () => {
         } else if (!doc.length) {
             const salt = rand(160, 36)
             // 第一次创建站长账户
-            new Models['User']({name: 'boss', password: sha1('123456' + salt), salt: salt}).save()
+            new Models['User']({ name: 'boss', password: sha1('123456' + salt), salt: salt }).save()
             Promise.all(data.map((item) => { new Models['Article'](item).save() }))
                 .then(() => { console.log('initialize successfully') })
                 .catch(() => { console.log('initialize failed') })
@@ -79,14 +127,27 @@ const initialize = () => {
     })
 }
 
-mongoose.connect('mongodb://39.103.187.204/lenote-users')
+const db = mongoose.connection;
+const dbAddress = 'mongodb://39.103.187.204/lenote-users';
+mongoose.Promise = global.Promise
+function connect () {
+    if (process.env.NODE_ENV !== 'production') {
+        mongoose.set('debug', true);
+    }
+    mongoose.set('useCreateIndex', true)
+    mongoose.connect(dbAddress, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    });
+    db.once('open', () => {
+        console.log('mongodb connect successly')
+        initialize()
+    });
+    db.on('error', err => {
+        console.log(err);
+    });
+}
 
-const db = mongoose.connection
-
-db.on('error', console.error.bind(console, 'Database connection error.'))
-db.once('open', () => {
-    console.log('The database has connected.')
-    initialize()
-})
+connect()
 
 module.exports = Models

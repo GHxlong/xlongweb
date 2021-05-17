@@ -22,6 +22,7 @@ exports.send = function (to, subject, html, res) {
             res.status(504).end('通知邮件发送失败')
         } else {
             console.log('Message sent: ' + info.response)
+            res.status(200).send('send email successfully')
         }
     })
 }

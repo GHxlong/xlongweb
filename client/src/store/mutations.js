@@ -64,5 +64,8 @@ export default {
         state.dialog = payload
         state.dialog.resolveFn = () => {}
         state.dialog.rejectFn = () => {}
+    },
+    set_documents: (state, doucments) => {
+        state.doucments = doucments
     }
 }

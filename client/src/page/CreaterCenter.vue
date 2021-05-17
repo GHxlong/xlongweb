@@ -110,7 +110,7 @@ export default {
     border-bottom: 0.125rem solid rgb(129, 216, 208);
     outline: none;
     background: transparent;
-    color: #ffffff;
+    color: #0f0f0f;
     margin-top: 1.525rem;
     margin-bottom: 0.625rem;
     text-align: left;
@@ -126,6 +126,7 @@ export default {
       height: 1.875rem;
       font-size: 1rem;
       margin-right: 0.125rem;
+      color: #0f0f0f;
     }
   }
 }
