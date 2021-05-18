@@ -132,4 +132,53 @@ router.get('/api/someArticles', (req, res) => {
     }
 })
 
+router.get('/api/content/posts', (req, res) => {
+    res.status(200).send({
+        data: {
+            content: 'test content',
+            createTime: new Date()
+        }
+    })
+})
+router.get('/api/content/posts/search', (req, res) => {
+    const sort = req.query.sort
+    const desc = req.query.desc
+    const keyword = req.query.keyword
+    res.status(200).send({
+        data: {
+            content: 'test content',
+            createTime: new Date()
+        }
+    })
+})
+
+router.get('/api/content/posts/:id', (req, res) => {
+    const id = req.params.id
+    res.status(200).send({
+        data: {
+            content: 'test content',
+            createTime: new Date()
+        }
+    })
+})
+
+router.get('/api/content/links', (req, res) => {
+    const id = req.params.id
+    res.status(200).send({
+        data: {
+            content: 'test content',
+            createTime: new Date()
+        }
+    })
+})
+
+router.get('/api/content/journalss', (req, res) => {
+    const id = req.params.id
+    res.status(200).send({
+        data: {
+            content: 'test content',
+            createTime: new Date()
+        }
+    })
+})
 module.exports = router

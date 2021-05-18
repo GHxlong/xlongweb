@@ -41,13 +41,11 @@ router.post('/api/singup', confirmToken, (req, res) => {
     })
 })
 
-router.post('/api/admin/login', (req, res) => {
-    res.status(200).send('singup successfully')
-})
-
-router.get('/api/content/posts', (req, res) => {
+router.get('/api/admin/counts', confirmToken, (req, res) => {
     res.status(200).send({
-        content: ''
+        data: {
+            access_token: 'xxxxxx'
+        }
     })
 })
 

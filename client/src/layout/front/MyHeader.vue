@@ -96,7 +96,6 @@ export default {
         font-size: 1.875rem;
         color: #ffffff;
         position: absolute;
-        right: 0.5rem;
         top: 0.2rem;
       }
     }

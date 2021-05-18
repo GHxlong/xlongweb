@@ -1,9 +1,11 @@
 const WorkboxPlugin = require("workbox-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+const path = require("path");
 
 const isProd = process.env.NODE_ENV === 'production'
 
 module.exports = {
-  outputDir: 'music',
+  outputDir: 'dist',
   configureWebpack: {
     devtool: isProd ? false: 'source-map',
     devServer: {
@@ -24,7 +26,10 @@ module.exports = {
       axios: 'axios',
     }: {},
     plugins: [
-      new WorkboxPlugin.GenerateSW()
+      new WorkboxPlugin.GenerateSW(),
+      new CopyWebpackPlugin([
+        { from: path.join(__dirname, "static"), to: "static" }
+      ]),
     ]
   },
   css: {

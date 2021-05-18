@@ -36,4 +36,12 @@ router.post('/api/login', (req, res) => {
     })
 })
 
+router.post('/api/admin/login', (req, res) => {
+    res.status(200).send({
+        data: {
+            access_token: 'xxxxxx'
+        }
+    })
+})
+
 module.exports = router
