@@ -33,7 +33,7 @@ router.post('/api/article', confirmToken, (req, res) => {
 
 // 获取某篇文章
 router.get('/api/article/:aid', (req, res) => {
-    db.Article.findOne({aid: req.params.aid}, (err, doc) => {
+    db.Article.findOne({ aid: req.params.aid }, (err, doc) => {
         if (err) {
             console.log(err)
         } else {
@@ -44,11 +44,11 @@ router.get('/api/article/:aid', (req, res) => {
 
 // 删除文章并删除文章下面的评论
 router.delete('/api/article/:aid', confirmToken, (req, res) => {
-    db.Article.remove({aid: req.params.aid}, (err, data) => {
+    db.Article.remove({ aid: req.params.aid }, (err, data) => {
         if (err) {
             console.log(err)
         } else {
-            db.Comment.remove({articleId: req.params.aid}, (err, data) => {
+            db.Comment.remove({ articleId: req.params.aid }, (err, data) => {
                 if (err) {
                     console.log(err)
                 } else {
@@ -70,7 +70,7 @@ router.patch('/api/article/:aid', confirmToken, (req, res) => {
         content: req.body.content,
         isPublish: true
     }
-    db.Article.update({aid: aid}, article, (err, data) => {
+    db.Article.update({ aid: aid }, article, (err, data) => {
         if (err) {
             console.log(err)
         } else {
@@ -82,24 +82,24 @@ router.patch('/api/article/:aid', confirmToken, (req, res) => {
 // 获取很多文章
 router.get('/api/articles', (req, res) => {
     const page = req.query.payload.page
-    const value =req.query.payload.value
+    const value = req.query.payload.value
     const limit = req.query.payload.limit - 0 || 4
-    const skip = limit * (page - 1 )
+    const skip = limit * (page - 1)
     if (value && value !== '全部') {
-        db.Article.find({tags: value, isPublish: true}).sort({date: -1}).limit(limit).skip(skip).exec()
+        db.Article.find({ tags: value, isPublish: true }).sort({ date: -1 }).limit(limit).skip(skip).exec()
             .then((articles) => {
                 res.send(articles)
-        })
+            })
     } else {
-        db.Article.find({isPublish: true}).sort({date: -1}).limit(limit).skip(skip).exec().then((articles) => {
+        db.Article.find({ isPublish: true }).sort({ date: -1 }).limit(limit).skip(skip).exec().then((articles) => {
             res.send(articles)
         })
     }
 })
 router.get('/api/blogSize', (req, res) => {
-    db.Article.count({isPublish: true}, (err, count) => {
-        if (err) res.status(200).send({count: 0})
-        if (count) res.status(200).send({count: `${count}`})
+    db.Article.count({ isPublish: true }, (err, count) => {
+        if (err) res.status(200).send({ count: 0 })
+        if (count) res.status(200).send({ count: `${count}` })
     })
 })
 // 搜索一些文章
@@ -107,36 +107,100 @@ router.get('/api/someArticles', (req, res) => {
     const key = req.query.payload.key
     const value = req.query.payload.value
     const page = req.query.payload.page || 1
-    const skip = 4 * (page - 1 )
-    const re = new RegExp(value,'i')
+    const skip = 4 * (page - 1)
+    const re = new RegExp(value, 'i')
     if (key === 'tags') {                                       // 根据标签来搜索文章
         const arr = value.split(' ')
-        db.Article.find({tags: {$all: arr}})
-            .sort({date: -1}).limit(4).skip(skip).exec()
+        db.Article.find({ tags: { $all: arr } })
+            .sort({ date: -1 }).limit(4).skip(skip).exec()
             .then((articles) => {
                 res.send(articles)
             })
     } else if (key === 'title') {                               // 根据标题的部分内容来搜索文章
-        db.Article.find({title: re, isPublish: true})
-            .sort({date: -1}).limit(4).skip(skip).exec()
+        db.Article.find({ title: re, isPublish: true })
+            .sort({ date: -1 }).limit(4).skip(skip).exec()
             .then((articles) => {
                 res.send(articles)
             })
     } else if (key === 'date') {                                // 根据日期来搜索文章
         const nextDay = value + 'T24:00:00'
-        db.Article.find({date: {$gte: new Date(value), $lt: new Date(nextDay)}})
-            .sort({date: -1}).limit(4).skip(skip).exec()
+        db.Article.find({ date: { $gte: new Date(value), $lt: new Date(nextDay) } })
+            .sort({ date: -1 }).limit(4).skip(skip).exec()
             .then((articles) => {
                 res.send(articles)
             })
     }
 })
 
+/**
+page	integer <int32>
+size	integer <int32>
+sort	Array of strings
+ */
 router.get('/api/content/posts', (req, res) => {
+    // page, size, sort
     res.status(200).send({
         data: {
-            content: 'test content',
-            createTime: new Date()
+            content: [
+                {
+                    categories: [
+                        {
+                            createTime: "",
+                            description: "",
+                            fullPath: "",
+                            id: 123,
+                            name: "",
+                            parentId: "",
+                            password: "",
+                            slug: "",
+                            thumbnail: ""
+                        }
+                    ],
+                    commentCount: 10,
+                    createTime: "",
+                    disallowComment: true,
+                    editTime: "",
+                    editorType: "MARKDOWN", // "RICHTEXT"
+                    fullPath: "",
+                    id: 123,
+                    likes: 0,
+                    metaDescription: "",
+                    metaKeywords: "",
+                    metas: {
+
+                    },
+                    password: "",
+                    slug: "",
+                    status: "", //"DRAFT" "INTIMATE" "PUBLISHED" "RECYCLE"
+                    summary: "",
+                    tags: [
+                        {
+                            createTime: "",
+                            fullPath: "",
+                            id: 123,
+                            name: "",
+                            slug: "",
+                            thumbnail: ""
+                        }],
+                    template: "",
+                    thumbnail: "",
+                    title: "",
+                    topPriority: 0,
+                    topped: true,
+                    updateTime: "",
+                    visits: 10,
+                    wordCount: 100
+                }
+            ],
+            hasContent: true,
+            hasNext: true,
+            hasPrevious: true,
+            isEmpty: false,
+            isFirst: false,
+            page: 1,
+            pages: 2,
+            rpp: 1,
+            total: 20
         }
     })
 })
@@ -146,8 +210,52 @@ router.get('/api/content/posts/search', (req, res) => {
     const keyword = req.query.keyword
     res.status(200).send({
         data: {
-            content: 'test content',
-            createTime: new Date()
+            content: [
+                {
+                    createTime: "",
+                    disallowComment: true,
+                    editTime: "",
+                    editorType: "MARKDOWN", // "RICHTEXT"
+                    fullPath: "",
+                    id: 123,
+                    likes: 0,
+                    metaDescription: "",
+                    metaKeywords: "",
+                    metas: {
+
+                    },
+                    password: "",
+                    slug: "",
+                    status: "", //"DRAFT" "INTIMATE" "PUBLISHED" "RECYCLE"
+                    summary: "",
+                    tags: [
+                        {
+                            createTime: "",
+                            fullPath: "",
+                            id: 123,
+                            name: "",
+                            slug: "",
+                            thumbnail: ""
+                        }],
+                    template: "",
+                    thumbnail: "",
+                    title: "",
+                    topPriority: 0,
+                    topped: true,
+                    updateTime: "",
+                    visits: 10,
+                    wordCount: 100
+                }
+            ],
+            hasContent: true,
+            hasNext: true,
+            hasPrevious: true,
+            isEmpty: false,
+            isFirst: false,
+            page: 1,
+            pages: 2,
+            rpp: 1,
+            total: 20
         }
     })
 })
@@ -156,8 +264,61 @@ router.get('/api/content/posts/:id', (req, res) => {
     const id = req.params.id
     res.status(200).send({
         data: {
-            content: 'test content',
-            createTime: new Date()
+            categories: [
+                {
+                    createTime: "",
+                    description: "",
+                    fullPath: "",
+                    id: 123,
+                    name: "",
+                    parentId: "",
+                    password: "",
+                    slug: "",
+                    thumbnail: ""
+                }
+            ],
+            categoryIds: 1234,
+            commentCount: 10,
+            createTime: "",
+            disallowComment: true,
+            editTime: "",
+            editorType: "MARKDOWN", // "RICHTEXT"
+            fullPath: "",
+            id: 123,
+            likes: 0,
+            metaDescription: "",
+            metaKeywords: "",
+            metas: [
+                {
+                    createTime: "",
+                    id: 1,
+                    key: "",
+                    postId: 1,
+                    value: "test value"
+                }
+            ],
+            originalContent: "test originalContent",
+            password: "",
+            slug: "",
+            status: "", //"DRAFT" "INTIMATE" "PUBLISHED" "RECYCLE"
+            summary: "",
+            tags: [
+                {
+                    createTime: "",
+                    fullPath: "",
+                    id: 123,
+                    name: "",
+                    slug: "",
+                    thumbnail: ""
+                }],
+            template: "",
+            thumbnail: "",
+            title: "",
+            topPriority: 0,
+            topped: true,
+            updateTime: "",
+            visits: 10,
+            wordCount: 100
         }
     })
 })
@@ -165,10 +326,17 @@ router.get('/api/content/posts/:id', (req, res) => {
 router.get('/api/content/links', (req, res) => {
     const id = req.params.id
     res.status(200).send({
-        data: {
-            content: 'test content',
-            createTime: new Date()
-        }
+        data: [
+            {
+                description: "",
+                id: 11,
+                logo: "",
+                name: "test name",
+                priority: 1,
+                team: "teats team",
+                url: ""
+            }
+        ]
     })
 })
 
@@ -176,8 +344,61 @@ router.get('/api/content/journalss', (req, res) => {
     const id = req.params.id
     res.status(200).send({
         data: {
-            content: 'test content',
-            createTime: new Date()
+            content: [
+                {
+                    commentCount: 10,
+                    content: "test content",
+                    createTime: "",
+                    id: 1,
+                    likes: 1,
+                    sourceContent: "test sourceContent",
+                    type: "INTIMATE" // "PUBLIC", 
+                }
+            ],
+            hasContent: true,
+            hasNext: true,
+            hasPrevious: true,
+            isEmpty: false,
+            isFirst: false,
+            page: 1,
+            pages: 2,
+            rpp: 1,
+            total: 20
+        }
+    })
+})
+
+router.get('/api/content/posts/:id/comments/list_view', (req, res) => {
+    res.status(200).send({
+        data: {
+            content: [
+                {
+                    allowNotification: true,
+                    author: "",
+                    authorUrl: "",
+                    avatar: "",
+                    content: "",
+                    createTime: "",
+                    email: "",
+                    gravatarMd5: "",
+                    id: 1,
+                    ipAddress: "",
+                    isAdmin: true,
+                    parent: {},
+                    parentId: 123,
+                    status: "", // "AUDITING" "PUBLISHED" "RECYCLE"
+                    userAgent: "",
+                }
+            ],
+            hasContent: true,
+            hasNext: true,
+            hasPrevious: true,
+            isEmpty: false,
+            isFirst: false,
+            page: 1,
+            pages: 2,
+            rpp: 1,
+            total: 20
         }
     })
 })
