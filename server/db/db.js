@@ -1,110 +1,22 @@
 const mongoose = require('mongoose')
-const Schema = mongoose.Schema
 const data = require('./data')
 const sha1 = require('sha1')
 const rand = require('csprng')
-const Sequence = require('./sequence')
 
-const UserSchema = new Schema(
-    {
-        name: String,
-        password: String,
-        salt: String            // 使用csprng随机生成的盐
-    },
-    { versionKey: false }
-)
+var CommentSchema = require('./comment')
+var UserSchema = require('./user')
+var ArticleSchema = require('./article')
+var FilesSchema = require('./doucment')
+var LeaveMsgSchema = require('./contact-me')
+var JournalSchema = require('./journals')
 
-const ArticleSchema = new Schema(
-    {
-        aid: { type: Number, index: { unique: true } },
-        title: String,
-        content: String,
-        tags: [String],
-        date: Date,
-        isPublish: Boolean,
-        comment_n: Number
-    },
-    { versionKey: false }
-)
-const CommentSchema = new Schema(
-    {
-        imgName: String,
-        name: String,
-        address: String,
-        content: String,
-        articleId: Number,
-        date: Date,
-        like: Number
-    },
-    { versionKey: false }
-)
-
-// 生成从0开始自增长的文章aid
-ArticleSchema.pre('save', function (next) {
-    var self = this
-    if (self.isNew) {
-        Sequence.increment('Article', function (err, result) {
-            if (err) { throw err }
-            self.aid = result.value.next
-            next()
-        })
-    } else {
-        next()
-    }
-})
-
-const LeaveMsgSchema = new Schema(
-    {
-        id: { type: Number, index: { unique: true } },
-        subject: String,
-        content: String,
-        date: Date,
-        paper: String
-    },
-    { versionKey: false }
-)
-LeaveMsgSchema.pre('save', function (next) {
-    var self = this
-    if (self.isNew) {
-        Sequence.increment('LeaveMssage', function (err, result) {
-            if (err) { throw err }
-            self.id = result.value.next
-            next()
-        })
-    } else {
-        next()
-    }
-})
-
-const FilesSchema = new Schema(
-    {
-        id: { type: Number, index: { unique: true } },
-        name: String,
-        type: String,
-        desc: String,
-        uploadDate: Date,
-        tags: [String]
-    },
-    { versionKey: false }
-)
-FilesSchema.pre('save', function (next) {
-    var self = this
-    if (self.isNew) {
-        Sequence.increment('Files', function (err, result) {
-            if (err) { throw err }
-            self.id = result.value.next
-            next()
-        })
-    } else {
-        next()
-    }
-})
 const Models = {
     User: mongoose.model('User', UserSchema),
     Article: mongoose.model('Article', ArticleSchema),
     Comment: mongoose.model('Comment', CommentSchema),
     LeaveMessage: mongoose.model('LeaveMessage', LeaveMsgSchema),
-    Files: mongoose.model('Files', FilesSchema)
+    Files: mongoose.model('Files', FilesSchema),
+    Journal: mongoose.model('Journal', JournalSchema)
 }
 
 // 初始化数据

@@ -15,8 +15,11 @@ export default {
     reducedArticles: (state) => {
         const articles = state.articles.map(article => {
             let newArticle = {}
-            for (let i in article) { newArticle[i] = article[i] }
-            newArticle.content = marked(article.content || '').replace(/<[^>]*>/g, '').slice(0, 200) + '......'
+            for (let i in article) {
+                newArticle[i] = article[i]
+            }
+            newArticle.originalContent = marked(article.originalContent || '').replace(/<[^>]*>/g, '').slice(0, 200) 
+            + '......'
             return newArticle
         })
         return articles
@@ -26,7 +29,7 @@ export default {
         return state.tags
     },
     articleList: (state) => {
-        const strHtml = unescapeHTML(marked(state.article.content || '', { renderer: renderer }))
+        const strHtml = unescapeHTML(marked(state.article.originalContent || '', { renderer: renderer }))
         if (strHtml) {
             const Re = /<h(\d) id="(.*?)">/g
             let arr = Re.exec(strHtml)

@@ -12,7 +12,6 @@ import ArticleContent           from '@/components/blog/ArticleContent'
 export default {
     created () {
         this.getAllArticles({page: this.page, limit: 8})
-        this.getBolgSize('publish')
     },
     data () {
         return {
@@ -20,7 +19,7 @@ export default {
         }
     },
     methods: {
-        ...mapActions(['getAllArticles', 'getBolgSize']),
+        ...mapActions(['getAllArticles']),
         nextPage () {
             this.page++
             this.getAllArticles({page: this.page, limit: 8})

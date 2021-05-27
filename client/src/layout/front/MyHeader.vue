@@ -1,14 +1,6 @@
 <template>
   <div id="nav">
     <div class="flexDiv">
-      <div class="search">
-        <input type="text"
-               placeholder="搜索一下"
-               v-model="text"
-               @keydown.enter="search" />
-        <i class="iconfont icon-search"
-           @click="search"></i>
-      </div>
       <nav>
         <ul class="catalog">
           <router-link to="/home"
@@ -25,6 +17,18 @@
                        tag="li">支持</router-link>
         </ul>
       </nav>
+      <div class="search">
+        <el-input  
+        class="input"
+        placeholder="Please input"
+                  v-model="text"
+                  @keydown.enter="search">
+          <el-button
+                     slot="append"
+                     icon="el-icon-search"
+                     @click="search"></el-button>
+        </el-input>
+      </div>
     </div>
     <div class="container">
       <img src="../../../static/sunset.jpg"
@@ -56,6 +60,7 @@ export default {
         hash: '#searcharticles',
       })
     },
+    logout() {},
   },
   watch: {
     $route() {
@@ -96,7 +101,8 @@ export default {
         font-size: 1.875rem;
         color: #ffffff;
         position: absolute;
-        top: 0.2rem;
+        right: 0;
+        top: 0;
       }
     }
     nav {

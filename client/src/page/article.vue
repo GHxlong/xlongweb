@@ -4,22 +4,22 @@
             <h1 class="title animated fadeIn">{{article.title}}</h1>
             <div class="appendInfo animated fadeIn">
                 <time>
-                    <i class="iconfont icon-shijian"></i>{{article.date | toDate}}
+                    <i class="iconfont icon-shijian"></i>{{article.createTime | toDate}}
                 </time>
                 <span>
                     <i class="iconfont icon-label"></i>{{article.tags | toTag}}
                 </span>
                 <a class="commentCount" href="#comment">
-                    <i class="iconfont icon-huifu"></i>{{article.comment_n}}
+                    <i class="iconfont icon-huifu"></i>{{article.commentCount}}
                 </a>
             </div>
             <article-list class="list animated fadeIn"></article-list>
             <div class="content animated fadeIn" v-html="mdHtml"></div>
             <div class="indexes animated fadeIn">
                 <div class="last animated fadeIn">
-                    <router-link :to="{name: 'article', params: {id: articles[prePage].aid, index: prePage, page: $route.params.page}, hash: '#article'}"  v-if="articles[prePage]" tag="p" class="left">
+                    <router-link :to="{name: 'article', params: {id: articles[prePage].id, index: prePage, page: $route.params.page}, hash: '#article'}"  v-if="articles[prePage]" tag="p" class="left">
                         <i class="iconfont icon-left"></i>{{articles[prePage].title}}</router-link>
-                    <router-link :to="{name: 'article', params: {id: articles[nextPage].aid, index: nextPage, page: $route.params.page}, hash: '#article'}" v-if="articles[nextPage]" tag="p" class="right">
+                    <router-link :to="{name: 'article', params: {id: articles[nextPage].id, index: nextPage, page: $route.params.page}, hash: '#article'}" v-if="articles[nextPage]" tag="p" class="right">
                         {{articles[nextPage].title}}<i class="iconfont icon-right"></i></router-link>
                 </div>
             </div>
@@ -85,7 +85,7 @@ export default {
     computed: {
         ...mapState(['articles', 'curTag', 'article']),
         mdHtml () {
-            return marked(this.article.content || '', { renderer: renderer })
+            return marked(this.article.originalContent || '', { renderer: renderer })
         }
     },
     methods: {

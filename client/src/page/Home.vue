@@ -8,12 +8,12 @@
                 <div class="flex">
                     <div v-for="(article, index) in reducedArticles" class="oneArticle">
                         <div class="option">
-                        <time>{{article.date | toDate}}</time>
-                        <span class="commentNumber"><i class="iconfont icon-huifu"></i>{{article.comment_n}}</span>
+                        <time>{{article.createTime | toDate}}</time>
+                        <span class="commentNumber"><i class="iconfont icon-huifu"></i>{{article.commentCount}}</span>
                         </div>
-                        <router-link :to="{name: 'article', params: {id: article.aid, index: index, page: 1}, hash: '#article'}" tag="p" exact class="title_1">{{article.title}}</router-link>
-                        <p class="content">{{article.content}}</p>
-                        <router-link :to="{name: 'article', params: {id: article.aid, index: index, page: 1}, hash: '#article'}" tag="button" exact><span>Read More</span></router-link>
+                        <router-link :to="{name: 'article', params: {id: article.id, index: index, page: 1}, hash: '#article'}" tag="p" exact class="title_1">{{article.title}}</router-link>
+                        <p class="content">{{article.originalContent}}</p>
+                        <router-link :to="{name: 'article', params: {id: article.id, index: index, page: 1}, hash: '#article'}" tag="button" exact><span>Read More</span></router-link>
                     </div>
                 </div>
             </div>

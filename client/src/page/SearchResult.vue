@@ -2,11 +2,11 @@
     <div id="search">
         <div v-for="(article, index) in reducedArticles" id="article">
             <h2>{{article.title}}</h2>
-            <time><i class="iconfont icon-shijian"></i>{{article.date | toDate}}</time>
+            <time><i class="iconfont icon-shijian"></i>{{article.createTime | toDate}}</time>
             <span class="articleTag"><i class="iconfont icon-label"></i>{{article.tags | toTag}}</span>
-            <span class="commentNumber"><i class="iconfont icon-huifu"></i>{{article.comment_n}}</span>
-            <p>{{article.content}}</p>
-            <router-link :to="{name: 'article', params: {id: article.aid, index: index, page: page}, hash: '#article'}" tag="button" exact>
+            <span class="commentNumber"><i class="iconfont icon-huifu"></i>{{article.commentCount}}</span>
+            <p>{{article.originalContent}}</p>
+            <router-link :to="{name: 'article', params: {id: article.id, index: index, page: page}, hash: '#article'}" tag="button" exact>
                 <span>Continue reading</span>
             </router-link>
         </div>

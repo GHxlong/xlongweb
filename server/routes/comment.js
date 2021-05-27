@@ -16,108 +16,48 @@ const emailForm = (title, name, otherName, message, content, url) => {
     return string
 }
 
-// 发布评论并通知站长和评论者
-router.post('/api/comment', (req, res) => {
-    db.Comment.findOne({ name: req.body.name, articleId: req.body.articleId }, (err, doc) => {
-        if (doc && doc.address !== req.body.address) {
-            res.status(403).end('用户名已存在')
-        } else if (!doc || doc.address === req.body.address) {
-            const comment = {
-                imgName: req.body.imgName,
-                name: req.body.name,
-                address: req.body.address,
-                date: Date(),
-                content: req.body.content,
-                articleId: req.body.articleId,
-                like: 0
-            }
-            if (/^@(.*):/.test(req.body.content)) {
-                const reviewer = /^@(.*):/.exec(req.body.content)[1]                // 评论者的名字
-                db.Comment.findOne({ name: reviewer, articleId: req.body.articleId }, (err, doc) => {
-                    const url = 'https://www.xxx.cn' + req.body.curPath
-                    const replyEmail = doc.address
-                    const content = emailForm('欢迎常来我的博客', reviewer, req.body.name, '回复了你的评论', req.body.content, url)
-                    mail.send(replyEmail, '您在FatDong的博客有一条新评论', content, res)
-                })
-            }
-            new db.Comment(comment).save().then(() => {
-                const url = 'https://www.xxx.cn' + req.body.curPath
-                const content = emailForm('MyBlog Message', '站长', req.body.name, '评论了你的文章', req.body.content, url)
-                mail.send('xxx@qq.com', '您的博客有一条新评论', content, res)
-                res.status(200).send('send email successfully')
-            }).catch(err => { console.log(err) })
-            db.Article.update({ aid: req.body.articleId }, { $inc: { comment_n: 1 } }, (err, data) => {
-                if (err) {
-                    console.log(err)
-                }
-            })
+/**
+allowNotification: true,
+author: "Xlong",
+authorUrl: "/authorUrl/Xlong/",
+avatar: "/authorUrl/Xlong/",
+content: "test comments content",
+createTime: new Date(),
+email: "Xlong email",
+gravatarMd5: "test gravatarMd5",
+id: 1,
+ipAddress: "1.1.1.1",
+isAdmin: true,
+parent: {},
+parentId: 123,
+status: "RECYCLE", // "AUDITING" "PUBLISHED" "RECYCLE"
+userAgent: "andriod",
+imgName: "reviewer",
+like: 0
+*/
+function SendComment (comments, res) {
+    let size = comments.length
+    res.status(200).send({
+        data: {
+            content: comments,
+            hasContent: true,
+            hasNext: true,
+            hasPrevious: true,
+            isEmpty: false,
+            isFirst: false,
+            page: 1,
+            pages: 2,
+            rpp: 1,
+            total: size
         }
     })
-})
-
-router.post('/api/content/posts/comments', (req, res) => {
-    db.Comment.findOne({ name: req.body.name, articleId: req.body.articleId }, (err, doc) => {
-        if (doc && doc.address !== req.body.address) {
-            res.status(403).end('用户名已存在')
-        } else if (!doc || doc.address === req.body.address) {
-            const comment = {
-                imgName: req.body.imgName,
-                name: req.body.name,
-                address: req.body.address,
-                date: Date(),
-                content: req.body.content,
-                articleId: req.body.articleId,
-                like: 0
-            }
-            if (/^@(.*):/.test(req.body.content)) {
-                const reviewer = /^@(.*):/.exec(req.body.content)[1]                // 评论者的名字
-                db.Comment.findOne({ name: reviewer, articleId: req.body.articleId }, (err, doc) => {
-                    const url = 'https://www.xxx.cn' + req.body.curPath
-                    const replyEmail = doc.address
-                    const content = emailForm('欢迎常来我的博客', reviewer, req.body.name, '回复了你的评论', req.body.content, url)
-                    mail.send(replyEmail, '您在FatDong的博客有一条新评论', content, res)
-                })
-            }
-            new db.Comment(comment).save().then(() => {
-                const url = 'https://www.xxx.cn' + req.body.curPath
-                const content = emailForm('MyBlog Message', '站长', req.body.name, '评论了你的文章', req.body.content, url)
-                mail.send('xxx@qq.com', '您的博客有一条新评论', content, res)
-                res.status(200).send('send email successfully')
-            }).catch(err => { console.log(err) })
-            db.Article.update({ aid: req.body.articleId }, { $inc: { comment_n: 1 } }, (err, data) => {
-                if (err) {
-                    console.log(err)
-                }
-            })
-        }
-    })
-})
-
-// 获取某一篇文章的所有评论
-router.get('/api/comments', (req, res) => {
-    const articleId = req.query.payload.id
-    if (req.query.payload.sort === 'date') {                                // 根据时间排序评论
-        db.Comment.find({ articleId: articleId }, 'name date content like imgName').sort({ date: -1 }).exec()
-            .then((comments) => {
-                res.send(comments)
-            })
-    } else if (req.query.payload.sort === 'like') {                         // 根据点赞数量排序评论
-        db.Comment.find({ articleId: articleId }, 'name date content like imgName').sort({ like: -1 }).exec()
-            .then((comments) => {
-                res.send(comments)
-            })
-    } else {                                                                // 根据文章的aid获取所有评论
-        db.Comment.find({ articleId: articleId }, 'name date content like imgName').exec().then((comments) => {
-            res.send(comments)
-        })
-    }
-})
+}
 
 // 更新评论的点赞数
-router.patch('/api/comments/:id', (req, res) => {
+router.patch('/api/content/comments/:id', (req, res) => {
     const id = req.params.id
     if (req.body.option === 'add') {
-        db.Comment.update({ _id: id }, { $inc: { like: 1 } }, (err, data) => {
+        db.Comment.updateOne({ _id: id }, { $inc: { like: 1 } }, (err, data) => {
             if (err) {
                 console.log(err)
             } else {
@@ -125,7 +65,7 @@ router.patch('/api/comments/:id', (req, res) => {
             }
         })
     } else if (req.body.option === 'drop') {
-        db.Comment.update({ _id: id }, { $inc: { like: -1 } }, (err, data) => {
+        db.Comment.updateOne({ _id: id }, { $inc: { like: -1 } }, (err, data) => {
             if (err) {
                 console.log(err)
             } else {
@@ -137,38 +77,186 @@ router.patch('/api/comments/:id', (req, res) => {
 
 router.get('/api/content/options/keys/comment_api_enabled', (req, res) => {
     res.status(200).send({
-        data: {
-            content: 'test content',
-            createTime: new Date()
-        }
+        data: true
     })
 })
 
-router.get('/api/admin/posts/comments/latest', confirmToken, (req, res) => {
-    res.status(200).send({
-        data: {
-            content: 'test content',
-            createTime: new Date()
-        }
-    })
-})
-
-router.post('/api/admin/posts/comments ', confirmToken, (req, res) => {
-    let c = {
-        "allowNotification": true,
-        "author": "string",
-        "authorUrl": "string",
-        "content": "string",
-        "email": "string",
-        "parentId": 0,
-        "postId": 0
+// add Commont, not admin
+router.post('/api/content/posts/comments', (req, res) => {
+    let comment = {
+        imgName: req.body.imgName,
+        allowNotification: true,
+        author: req.body.author,
+        authorUrl: "",
+        content: req.body.content,
+        email: req.body.email,
+        parentId: 0,
+        postId: req.body.postId,
+        createTime: new Date(),
+        status: "AUDITING",
+        like: 0
     }
-    res.status(200).send({
-        data: {
-            content: 'test content',
-            createTime: new Date()
-        }
+    if (/^@(.*):/.test(req.body.content)) {
+        const reviewer = /^@(.*):/.exec(req.body.content)[1]                // 评论者的名字
+        db.Comment.findOne({ author: reviewer, postId: req.body.postId }, (err, doc) => {
+            const url = 'https://www.xxx.cn' + req.body.curPath
+            const replyEmail = doc.email
+            const content = emailForm('欢迎常来我的博客', reviewer, req.body.author, '回复了你的评论', req.body.content, url)
+            // mail.send(replyEmail, '您在FatDong的博客有一条新评论', content, res)
+        })
+    }
+    db.Comment(comment).save().then(() => {
+        const url = 'https://www.xxx.cn' + req.body.curPath
+        const content = emailForm('MyBlog Message', '站长', req.body.author, '评论了你的文章', req.body.content, url)
+        // mail.send('xxx@qq.com', '您的博客有一条新评论', content, res)
+        // res.status(200).send('send email successfully')
+        db.Article.updateMany({ id: req.body.postId },
+            { $inc: { commentCount: 1 } }, (err, data) => {
+                if (err) {
+                    console.log(err)
+                }
+            }
+        )
+        res.status(200).send({
+            data: {
+                comment
+            }
+        })
+    }).catch(err => { 
+        console.log(err) 
+        res.status(200).send({
+            data: {
+                code: 10001,
+                err
+            }
+        })
     })
 })
 
+// add Commont
+router.post('/api/admin/content/posts/comments', (req, res) => {
+    let comment = {
+        imgName: req.body.imgName,
+        allowNotification: true,
+        author: req.body.author,
+        authorUrl: "",
+        content: req.body.content,
+        email: req.body.email,
+        parentId: 0,
+        postId: req.body.postId,
+        createTime: new Date(),
+        status: "AUDITING",
+        like: 0
+    }
+    if (/^@(.*):/.test(req.body.content)) {
+        const reviewer = /^@(.*):/.exec(req.body.content)[1]                // 评论者的名字
+        db.Comment.findOne({ author: reviewer, postId: req.body.postId }, (err, doc) => {
+            const url = 'https://www.xxx.cn' + req.body.curPath
+            const replyEmail = doc.email
+            const content = emailForm('欢迎常来我的博客', reviewer, req.body.author, '回复了你的评论', req.body.content, url)
+            // mail.send(replyEmail, '您在FatDong的博客有一条新评论', content, res)
+        })
+    }
+    db.Comment(comment).save().then(() => {
+        const url = 'https://www.xxx.cn' + req.body.curPath
+        const content = emailForm('MyBlog Message', '站长', req.body.author, '评论了你的文章', req.body.content, url)
+        // mail.send('xxx@qq.com', '您的博客有一条新评论', content, res)
+        // res.status(200).send('send email successfully')
+        db.Article.updateMany({ id: req.body.postId },
+            { $inc: { commentCount: 1 } }, (err, data) => {
+                if (err) {
+                    console.log(err)
+                }
+            }
+        )
+        res.status(200).send({
+            data: {
+                comment
+            }
+        })
+    }).catch(err => { 
+        console.log(err) 
+        res.status(200).send({
+            data: {
+                code: 10001,
+                err
+            }
+        })
+    })
+})
+
+const returnCommentCols = "author authorUrl email avatar content createTime id isAdmin status imgName like postId"
+
+/**
+top	
+integer <int32>
+top
+status	
+string
+Enum: "AUDITING" "PUBLISHED" "RECYCLE"
+status
+*/
+// get Commont list, admin
+router.get('/api/admin/posts/comments/latest', (req, res) => {
+    let top = req.query.top ? parseInt(req.query.top) : 10 
+    db.Comment.find({}, returnCommentCols).sort({ createTime: -1 }).limit(top).exec()
+    .then((comments) => {
+        comments.forEach(comment => {
+            let id = comment.postId;
+            db.Article.findOne({id: id}, (err, doc) => {
+                if (err) {
+                    console.log(err)
+                } else {
+                    comment.post = doc
+                }
+            })
+        });
+        res.status(200).send({
+            data: comments
+        })
+    })
+})
+router.get('/api/content/posts/:id/comments/list_view', (req, res) => {
+    let articleId = null
+    let sortKey = null
+    if (req.query.payload) {
+        articleId = req.query.payload.id
+        sortKey = req.query.payload.sort
+    } else {
+        articleId = req.params.id
+        sortKey = req.query.sort
+    }
+    if (!articleId || articleId === undefined) {
+        articleId = null
+    }
+    if (sortKey === 'date') {
+        db.Comment.find({ postId: articleId }, returnCommentCols).sort({ createTime: -1 }).exec()
+            .then((comments) => {
+                SendComment(comments, res)
+            })
+    } else if (sortKey === 'like') {
+        db.Comment.find({ postId: articleId }, returnCommentCols).sort({ like: -1 }).exec()
+            .then((comments) => {
+                SendComment(comments, res)
+            })
+    } else {
+        db.Comment.find({ postId: articleId }, returnCommentCols).exec().then((comments) => {
+            let size = comments.length
+            res.status(200).send({
+                data: {
+                    content: comments,
+                    hasContent: true,
+                    hasNext: true,
+                    hasPrevious: true,
+                    isEmpty: false,
+                    isFirst: false,
+                    page: 1,
+                    pages: 2,
+                    rpp: 1,
+                    total: size
+                }
+            })
+        })
+    }
+})
 module.exports = router

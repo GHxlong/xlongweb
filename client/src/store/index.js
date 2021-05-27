@@ -35,7 +35,8 @@ export default new Vuex.Store({
         draft: {},
         drafts: {},
         comments: [],
-        doucments: []
+        doucments: [],
+        doucmentsUploadHost: ""
     },
     getters,
     actions,

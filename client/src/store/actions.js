@@ -13,181 +13,189 @@ const endLoading = (commit, startTime, toggle) => {
 
 export default {
     login ({ commit }, payload) {
-        return Vue.http.post('/api/login', payload).catch((err) => { console.log(err) })
+        return Vue.http.post('/api/admin/login', payload).catch((err) => { console.log(err) })
     },
     resetUser ({ commit }, payload) {
-        return Vue.http.post('/api/user', payload)
+        return Vue.http.post('/api/admin/user', payload)
             .then(() => {
                 commit('unset_user')
                 router.go({ name: 'login' })
             }).catch((err) => { console.log(err) })
     },
-    //  article的http请求
-    saveArticle ({ state, commit }, aid) {
-        commit('isSaving_toggle', false)
-        if (aid) {
-            return Vue.http.patch('/api/article/' + aid, state.article)
-                .then(() => {
-                    commit('isSaving_toggle', true)
-                    router.push({ name: 'posts' })
-                }, () => { alert('保存失败') }).catch((err) => { console.log(err) })
-        } else {
-            return Vue.http.post('/api/article', state.article)
-                .then(() => {
-                    commit('isSaving_toggle', true)
-                    router.push({ name: 'posts' })
-                }, () => { alert('保存失败') }).catch((err) => { console.log(err) })
-        }
-    },
-    //  article的http请求
     createArticle ({ state, commit }) {
         commit('isSaving_toggle', false)
-        return Vue.http.post('/api/create_article', state.article)
+        return Vue.http.post('/api/content/create', state.article)
             .then(() => {
                 commit('isSaving_toggle', true)
                 router.push({ name: 'home' })
-            }, () => { alert('保存失败') }).catch((err) => { console.log(err) })
+            }, () => { alert('创建失败') }).catch((err) => { console.log(err) })
     },
     getAllArticles ({ commit }, payload) {
+        payload.status = "PUBLISHED"
         commit('moreArticle_toggle', true)
         const startTime = beginLoading(commit, payload.add)
         if (payload.value) {
             commit('isLoading_toggle', false)
         }
-        return Vue.http.get('/api/articles', { params: { payload } })
+        return Vue.http.get('/api/content/posts', { params: { payload } })
             .then(response => response.json())
             .then(articles => {
-                if (articles.length === 0) {
+                let data = articles.data
+                if (data.content.length === 0) {
                     commit('moreArticle_toggle', false)
                     commit('noMore_toggle', true)
                 } else {
                     commit('noMore_toggle', false)
                 }
                 if (payload.add) {
-                    commit('add_articles', articles)
+                    commit('add_articles', data.content)
                     endLoading(commit, startTime, 'loadMore_toggle')
                 } else {
-                    commit('set_all_articles', articles)
+                    commit('set_all_articles', data.content)
+                    commit('set_total_articles', data.total)
                     endLoading(commit, startTime, 'isLoading_toggle')
                 }
             }).catch((err) => { console.log(err) })
     },
-    getArticle ({ commit, state }, aid) {
+    getArticle ({ commit, state }, id) {
         const startTime = beginLoading(commit, false)
         if (router.currentRoute.hash) {
             commit('isLoading_toggle', false)
         }
         document.title = '加载中...'
-        return Vue.http.get('/api/article/' + aid)
+        return Vue.http.get('/api/content/posts/' + id)
             .then(response => {
-                commit('set_article', response.data)
-                commit('set_headline', { content: state.article.title, animation: 'animated rotateIn' })
+                let data = response.data
+                commit('set_article', data.data)
+                commit('set_headline', {
+                    content: state.article.title,
+                    animation: 'animated rotateIn'
+                })
                 document.title = state.article.title
                 endLoading(commit, startTime, 'isLoading_toggle')
             }).catch((err) => { console.log(err) })
     },
-    getBolgSize ({ commit }, type) {
-        const startTime = beginLoading(commit, false)
-        if (router.currentRoute.hash) {
-            commit('isLoading_toggle', false)
-        }
-        document.title = '加载中...'
-        return Vue.http.get('/api/blogSize', { params: { type } })
-            .then(response => {
-                commit('set_total_articles', response.data.count)
-                endLoading(commit, startTime, 'isLoading_toggle')
-            }).catch((err) => { console.log(err) })
-    },
     delArticle ({ dispatch }, payload) {
-        return Vue.http.delete('/api/article/' + payload.aid)
+        return Vue.http.delete('/api/content/' + payload.id)
             .then(() => {
                 if (payload.route.name === 'posts') dispatch('getAllArticles', { page: payload.page, limit: 8 })
                 if (payload.route.name === 'drafts') dispatch('getAllDrafts', { page: payload.page, limit: 8 })
                 if (payload.route.name === 'search') router.push({ name: 'posts' })
             }).catch((err) => { console.log(err) })
     },
-    // draft的http请求
-    saveDraft ({ state, commit }, aid) {
-        // 可能要改saveArticle
-        if (aid) {
-            return Vue.http.patch('/api/draft/' + aid, state.article)
-                .then(() => {
-                    commit('isSaving_toggle', true)
-                    router.push({ name: 'drafts' })
-                }, () => { alert('保存失败') }).catch((err) => { console.log(err) })
+    // update
+    saveArticle ({ state, commit }, id) {
+        commit('isSaving_toggle', false)
+        return Vue.http.patch('/api/content/' + id, state.article)
+            .then(() => {
+                commit('isSaving_toggle', true)
+                router.push({ name: 'posts' })
+            }, () => { alert('保存失败') }).catch((err, cb) => {
+                console.log(err)
+                if (cb) cb()
+            })
+    },
+    saveDraft ({ state, commit }, id) {
+        if (id) {
+            return Vue.http.patch('/api/content/' + id, state.article)
+            .then(() => {
+                commit('isSaving_toggle', true)
+                router.push({ name: 'posts' })
+            }, () => { alert('保存失败') }).catch((err, cb) => {
+                console.log(err)
+                if (cb) cb()
+            })
         } else {
-            return Vue.http.post('/api/draft', state.article)
+            commit('isSaving_toggle', false)
+            state.article.status = "DRAFT"
+            return Vue.http.post('/api/content/create', state.article)
                 .then(() => {
                     commit('isSaving_toggle', true)
-                    router.push({ name: 'drafts' })
-                }, () => { alert('保存失败') }).catch((err) => { console.log(err) })
+                    router.push({ name: 'home' })
+                }, () => { alert('创建失败') }).catch((err) => { console.log(err) })
         }
     },
     getAllDrafts ({ commit }, payload) {
-        return Vue.http.get('/api/drafts', { params: { payload } })
+        payload.status = "DRAFT"
+        return Vue.http.get('/api/content/posts', { params: { payload } })
             .then(response => response.json())
             .then(articles => {
-                commit('set_all_articles', articles)
-            }).catch((err) => { console.log(err) })
-    },
-    // search
-    searchArticles ({ commit }, payload) {
-        document.title = '搜索中...'
-        commit('moreArticle_toggle', true)
-        const startTime = beginLoading(commit, payload.add)
-        return Vue.http.get('/api/someArticles', { params: { payload } })
-            .then(response => response.json())
-            .then(articles => {
-                if (articles.length === 0) {
+                let data = articles.data
+                if (data.content.length === 0) {
                     commit('moreArticle_toggle', false)
                     commit('noMore_toggle', true)
                 } else {
                     commit('noMore_toggle', false)
                 }
                 if (payload.add) {
-                    commit('add_articles', articles)
+                    commit('add_articles', data.content)
                     endLoading(commit, startTime, 'loadMore_toggle')
                 } else {
-                    commit('set_all_articles', articles)
+                    commit('set_all_articles', data.content)
+                    commit('set_total_articles', data.total)
+                    endLoading(commit, startTime, 'isLoading_toggle')
+                }
+            }).catch((err) => { console.log(err) })
+    },
+    searchArticles ({ commit }, payload) {
+        document.title = '搜索中...'
+        commit('moreArticle_toggle', true)
+        const startTime = beginLoading(commit, payload.add)
+        return Vue.http.get('/api/content/posts_search', { params: { payload } })
+            .then(response => response.json())
+            .then(articles => {
+                let data = articles.data
+                console.log(JSON.stringify(data))
+                if (data.content.length === 0) {
+                    commit('moreArticle_toggle', false)
+                    commit('noMore_toggle', true)
+                } else {
+                    commit('noMore_toggle', false)
+                }
+                if (payload.add) {
+                    commit('add_articles', data.content)
+                    endLoading(commit, startTime, 'loadMore_toggle')
+                } else {
+                    commit('set_all_articles', data.content)
                     endLoading(commit, startTime, 'isLoading_toggle')
                 }
                 document.title = '搜索成功'
             }).catch((err) => { console.log(err) })
     },
-    // tags
     getAllTags ({ commit }) {
-        return Vue.http.get('/api/tags')
+        return Vue.http.get('/api/content/tags')
             .then(response => {
                 commit('set_tags', response.data)
             }).catch((err) => { console.log(err) })
     },
-    // email
     sendMail ({ commit }, payload) {
         return Vue.http.post('/api/mail', payload).catch((err) => { console.log(err) })
     },
-    // email
     contactMe ({ commit }, payload) {
         return Vue.http.post('/api/contact_me', payload).catch((err) => { console.log(err) })
     },
-    // comment
     summitComment ({ commit }, payload) {
-        return Vue.http.post('/api/comment', payload)
+        return Vue.http.post('/api/admin/content/posts/comments', payload)
     },
     getAllComments ({ commit }, payload) {
-        return Vue.http.get('/api/comments', { params: { payload } })
+        return Vue.http.get('/api/content/posts/' + payload.id + '/comments/list_view', { params: { payload } })
             .then(response => response.json())
             .then(comments => {
-                commit('set_comments', comments)
+                let data = comments.data;
+                commit('set_comments', data.content)
             }).catch((err) => { console.log(err) })
     },
     updateLike ({ commit }, payload) {
-        return Vue.http.patch('/api/comments/' + payload.id, { option: payload.option })
+        return Vue.http.patch('/api/content/comments/' + payload.id, { option: payload.option })
             .catch((err) => { console.log(err) })
     },
     getDocumentList ({ commit }, payload) {
         return Vue.http.get('/api/document/all', { params: { payload } })
             .then(response => {
-                commit('set_documents', response.data)
+                commit('set_documents', response.data.data.list)
             }).catch((err) => { console.log(err) })
+    },
+    uploadFilesReq({ commit }, fd, config){
+        return Vue.http.post('/api/document/upload', fd, config).catch((err) => { console.log(err) })
     }
 }

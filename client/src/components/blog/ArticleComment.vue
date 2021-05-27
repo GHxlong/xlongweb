@@ -5,7 +5,7 @@
             <textarea spellcheck='false' placeholder='说点什么吧...' v-model='content' id='reply' ref='textBox'></textarea>
             <div class="inputBox">
                 <input type='text' placeholder='邮箱 (用于通知)' v-model='address'/>
-                <input type='text' placeholder='称呼' v-model='name' class='name' id='nameBox'/>
+                <input type='text' placeholder='称呼' v-model='author' class='name' id='nameBox'/>
                 <button @click='summit' :disabled='summitFlag'>
                     <span>{{summitFlag ? '提交中...' : '发布评论'}}</span>
                 </button>
@@ -22,12 +22,12 @@
             </div>
             <div class='comments' v-for='(comment,index) in comments'>
                 <div id='info' :class='comment.imgName'>
-                    <p class='commentName'>#{{index + 1}} <span>{{comment.name}}</span></p>
+                    <p class='commentName'>#{{index + 1}} <span>{{comment.author}}</span></p>
                     <p class='text'>{{comment.content}}</p>
                     <div class='options'>
-                        <p class='commentDate'>{{comment.date | to_date}}</p>
+                        <p class='commentDate'>{{comment.createTime | to_date}}</p>
                         <a href='#comment' data-scroll>
-                            <span @click='reply(comment.name)'>
+                            <span @click='reply(comment.author)'>
                                 <i class='iconfont icon-huifu'></i>回复
                             </span>
                         </a>
@@ -49,7 +49,7 @@ import {mapActions, mapState, mapMutations} from 'vuex'
 export default {
     data () {
         return {
-            name: '',
+            author: '',
             address: '',
             content: '',
             imgName: '',
@@ -65,7 +65,7 @@ export default {
         }
         if (localStorage.reviewer) {
             this.address = localStorage['e-mail']
-            this.name = localStorage['reviewer']
+            this.author = localStorage['reviewer']
         }
     },
     computed: {
@@ -83,7 +83,7 @@ export default {
         ...mapMutations(['set_dialog']),
         summit () {
             const re = /^[\w_-]+@[\w_-]+\.[\w\\.]+$/
-            if (!this.name || !this.content) {
+            if (!this.author || !this.content) {
                 this.set_dialog({
                     info: '还有选项没填(⊙o⊙)？',
                     hasTwoBtn: false,
@@ -129,13 +129,13 @@ export default {
             this.summitFlag = true
             // 将评论者的邮箱和用户名存储在浏览器中，在created钩子中赋值, 这样刷新后邮箱和昵称都不用再写一遍
             localStorage.setItem('e-mail', this.address)
-            localStorage.setItem('reviewer', this.name)
+            localStorage.setItem('reviewer', this.author)
             this.summitComment({
                 imgName: this.imgName,
-                name: this.name,
+                author: this.author,
                 content: this.content,
-                address: this.address,
-                articleId: this.$route.params.id,
+                email: this.address,
+                postId: this.$route.params.id,
                 curPath: this.$route.fullPath
             }).then(() => {
                 this.content = ''
@@ -148,11 +148,11 @@ export default {
                     show: true
                 })
                 this.summitFlag = false
-                this.name = ''
+                this.author = ''
             })
         },
-        reply (name) {
-            this.content = '@' + name + ': '
+        reply (author) {
+            this.content = '@' + author + ': '
             this.$refs.textBox.focus()
         },
         addLike (id, index) {

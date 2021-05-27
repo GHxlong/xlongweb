@@ -12,7 +12,7 @@ const creatToken = (id, name) => {
     }, secret.cert, { expiresIn: '7d' })
 }
 
-router.post('/api/login', (req, res) => {
+router.post('/api/admin/login', (req, res) => {
     db.User.findOne({ name: req.body.name }, (err, doc) => {
         if (err) {
             console.log(err)
@@ -22,9 +22,14 @@ router.post('/api/login', (req, res) => {
             if (doc.password === sha1(req.body.password + salt)) {
                 const token = creatToken(doc._id, doc.name)
                 res.status(200).send({
-                    id: doc._id,
-                    name: doc.name,
-                    token: token
+                    data: {
+                        id: doc._id,
+                        name: doc.name,
+                        uid: doc.uid,
+                        access_token: token,
+                        expired_in: 0,
+                        refresh_token: token
+                    }
                 })
             } else {
                 res.status(401).end()
@@ -32,23 +37,6 @@ router.post('/api/login', (req, res) => {
         }
         else {
             res.status(401).end()
-        }
-    })
-})
-
-/**
-{
-"authcode": "string",
-"password": "string",
-"username": "string"
-}
- */
-router.post('/api/admin/login', (req, res) => {
-    res.status(200).send({
-        data: {
-            access_token: 'access_token xxxxxx',
-            expired_in: 0,
-            refresh_token: "refresh_token yyyyy"
         }
     })
 })
@@ -67,11 +55,29 @@ router.post('/api/admin/logout', (req, res) => {
 }
  */
 router.post('/api/admin/login/precheck', (req, res) => {
-    res.status(200).send({
-        data: {
-            access_token: 'access_token xxxxxx',
-            expired_in: 0,
-            refresh_token: "refresh_token yyyyy"
+    db.User.findOne({ name: req.body.name }, (err, doc) => {
+        if (err) {
+            console.log(err)
+            res.status(200).send(err);
+        } else if (doc) {
+            const salt = doc.salt
+            if (doc.password === sha1(req.body.password + salt)) {
+                const token = creatToken(doc._id, doc.name)
+                res.status(200).send({
+                    data: {
+                        id: doc._id,
+                        name: doc.name,
+                        access_token: token,
+                        expired_in: 0,
+                        refresh_token: token
+                    }
+                })
+            } else {
+                res.status(401).end()
+            }
+        }
+        else {
+            res.status(401).end()
         }
     })
 })

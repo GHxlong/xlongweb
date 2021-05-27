@@ -1,13 +1,15 @@
 export default {
     // login
     set_user: (state, user) => {
-        localStorage.setItem('token', user.token)
+        localStorage.setItem('token', user.access_token)
         localStorage.setItem('userName', user.name)
+        localStorage.setItem('refresh_token', user.access_token)
         state.user = user
     },
     unset_user: (state) => {
         localStorage.removeItem('token')
         localStorage.removeItem('userName')
+        localStorage.removeItem('refresh_token')
         state.user = {}
     },
     // 设置页面标题

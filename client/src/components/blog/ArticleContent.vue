@@ -10,12 +10,12 @@
         </thead>
         <tbody>
         <tr v-for="(article, index) in articles" :key="index">
-            <router-link :to="{name: 'editor', query: {aid: article.aid}}" tag="td" class="title">{{article.title}}</router-link>
+            <router-link :to="{name: 'editor', query: {id: article.id}}" tag="td" class="title">{{article.title}}</router-link>
             <td>{{article.tags | toTag}}</td>
-            <td>{{article.date | toDate}}</td>
+            <td>{{article.createTime | toDate}}</td>
             <td>
-                <router-link :to="{name: 'editor', query: {aid: article.aid}}" class="iconfont icon-biji-copy" tag="i"></router-link>
-                <i class="iconfont icon-shanchu" @click="deleteConfirm(article.aid)"></i>
+                <router-link :to="{name: 'editor', query: {id: article.id}}" class="iconfont icon-biji-copy" tag="i"></router-link>
+                <i class="iconfont icon-shanchu" @click="deleteConfirm(article.id)"></i>
             </td>
         </tr>
         </tbody>
@@ -33,7 +33,7 @@
 import {mapState, mapActions, mapMutations} from 'vuex'
 export default {
     props: {
-        totalPage: 0
+        totalPage: null
     },
     data () {
         return {
@@ -62,7 +62,7 @@ export default {
                 this.$emit('dropPage') // 传递给父组件
             }
         },
-        deleteConfirm (aid) {
+        deleteConfirm (id) {
             this.set_dialog({
                 info: '确认删除(⊙o⊙)？',
                 hasTwoBtn: true,
@@ -72,7 +72,7 @@ export default {
                 this.dialog.resolveFn = resolve
                 this.dialog.rejectFn = reject
             }).then(() => {
-                this.delArticle({aid: aid, page: this.page, route: this.$route})
+                this.delArticle({id: id, page: this.page, route: this.$route})
             }).catch((err) => {
                 console.log(err)
             })

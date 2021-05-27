@@ -3,52 +3,43 @@ const router = express.Router()
 const db = require('../db/db.js')
 const confirmToken = require('../middlewares/confirmToken')
 
-// 发布文章
-router.post('/api/create_article', (req, res) => {
+// 创建文章
+router.post('/api/content/create', (req, res) => {
     const article = {
-        comment_n: 0,
-        title: req.body.title,
-        content: req.body.content,
-        date: Date(),
-        tags: req.body.tags,
-        isPublish: true
+        "title": req.body.title,
+        "categories": req.body.categories || [],
+        "originalContent": req.body.content,
+        "commentCount": 0,
+        "createTime": new Date(),
+        "disallowComment": false,
+        "editTime": new Date(),
+        "editorType": "MARKDOWN",
+        "fullPath": "",
+        "likes": 0,
+        "metaDescription": "metaDescription",
+        "metaKeywords": "metaKeywords",
+        "password": "password",
+        "slug": "slug",
+        "status": req.body.status || "PUBLISHED",
+        "summary": "summary",
+        "tags": req.body.tags,
+        "template": "",
+        "thumbnail": "",
+        "topPriority": 1,
+        "topped": true,
+        "updateTime": new Date(),
+        "visits": 1
     }
     new db.Article(article).save()
     res.status(200).send('succeed in saving new passage.')
 })
 
-// 发布文章
-router.post('/api/article', confirmToken, (req, res) => {
-    const article = {
-        comment_n: 0,
-        title: req.body.title,
-        content: req.body.content,
-        date: Date(),
-        tags: req.body.tags,
-        isPublish: true
-    }
-    new db.Article(article).save()
-    res.status(200).send('succeed in saving new passage.')
-})
-
-// 获取某篇文章
-router.get('/api/article/:aid', (req, res) => {
-    db.Article.findOne({ aid: req.params.aid }, (err, doc) => {
+router.delete('/api/content/:id', confirmToken, (req, res) => {
+    db.Article.remove({ id: req.params.id }, (err, data) => {
         if (err) {
             console.log(err)
         } else {
-            res.status(200).send(doc)
-        }
-    })
-})
-
-// 删除文章并删除文章下面的评论
-router.delete('/api/article/:aid', confirmToken, (req, res) => {
-    db.Article.remove({ aid: req.params.aid }, (err, data) => {
-        if (err) {
-            console.log(err)
-        } else {
-            db.Comment.remove({ articleId: req.params.aid }, (err, data) => {
+            db.Comment.deleteMany({ postId: req.params.id }, (err, data) => {
                 if (err) {
                     console.log(err)
                 } else {
@@ -61,75 +52,23 @@ router.delete('/api/article/:aid', confirmToken, (req, res) => {
 })
 
 // 更新文章
-router.patch('/api/article/:aid', confirmToken, (req, res) => {
-    const aid = req.params.aid
+router.patch('/api/content/:id', confirmToken, (req, res) => {
+    const id = req.params.id
     const article = {
         title: req.body.title,
         tags: req.body.tags,
-        date: Date(),
-        content: req.body.content,
-        isPublish: true
+        editTime: Date(),
+        updateTime: Date(),
+        originalContent: req.body.content,
+        status: "PUBLISHED"
     }
-    db.Article.update({ aid: aid }, article, (err, data) => {
+    db.Article.updateMany({ id: id }, article, (err, data) => {
         if (err) {
             console.log(err)
         } else {
             res.status(200).send('succeed in updating ---' + data.title)
         }
     })
-})
-
-// 获取很多文章
-router.get('/api/articles', (req, res) => {
-    const page = req.query.payload.page
-    const value = req.query.payload.value
-    const limit = req.query.payload.limit - 0 || 4
-    const skip = limit * (page - 1)
-    if (value && value !== '全部') {
-        db.Article.find({ tags: value, isPublish: true }).sort({ date: -1 }).limit(limit).skip(skip).exec()
-            .then((articles) => {
-                res.send(articles)
-            })
-    } else {
-        db.Article.find({ isPublish: true }).sort({ date: -1 }).limit(limit).skip(skip).exec().then((articles) => {
-            res.send(articles)
-        })
-    }
-})
-router.get('/api/blogSize', (req, res) => {
-    db.Article.count({ isPublish: true }, (err, count) => {
-        if (err) res.status(200).send({ count: 0 })
-        if (count) res.status(200).send({ count: `${count}` })
-    })
-})
-// 搜索一些文章
-router.get('/api/someArticles', (req, res) => {
-    const key = req.query.payload.key
-    const value = req.query.payload.value
-    const page = req.query.payload.page || 1
-    const skip = 4 * (page - 1)
-    const re = new RegExp(value, 'i')
-    if (key === 'tags') {                                       // 根据标签来搜索文章
-        const arr = value.split(' ')
-        db.Article.find({ tags: { $all: arr } })
-            .sort({ date: -1 }).limit(4).skip(skip).exec()
-            .then((articles) => {
-                res.send(articles)
-            })
-    } else if (key === 'title') {                               // 根据标题的部分内容来搜索文章
-        db.Article.find({ title: re, isPublish: true })
-            .sort({ date: -1 }).limit(4).skip(skip).exec()
-            .then((articles) => {
-                res.send(articles)
-            })
-    } else if (key === 'date') {                                // 根据日期来搜索文章
-        const nextDay = value + 'T24:00:00'
-        db.Article.find({ date: { $gte: new Date(value), $lt: new Date(nextDay) } })
-            .sort({ date: -1 }).limit(4).skip(skip).exec()
-            .then((articles) => {
-                res.send(articles)
-            })
-    }
 })
 
 /**
@@ -139,188 +78,121 @@ sort	Array of strings
  */
 router.get('/api/content/posts', (req, res) => {
     // page, size, sort
-    res.status(200).send({
-        data: {
-            content: [
-                {
-                    categories: [
-                        {
-                            createTime: "",
-                            description: "",
-                            fullPath: "",
-                            id: 123,
-                            name: "",
-                            parentId: "",
-                            password: "",
-                            slug: "",
-                            thumbnail: ""
-                        }
-                    ],
-                    commentCount: 10,
-                    createTime: "",
-                    disallowComment: true,
-                    editTime: "",
-                    editorType: "MARKDOWN", // "RICHTEXT"
-                    fullPath: "",
-                    id: 123,
-                    likes: 0,
-                    metaDescription: "",
-                    metaKeywords: "",
-                    metas: {
+    let status = ''
+    let page = 1
+    let limit = 100
+    let skip = 0
+    if (req.query.payload) {
+        page = req.query.payload.page
+        limit = req.query.payload.limit - 0 || 4
+        status = req.query.payload.status || "PUBLISHED"
+    } else {
+        page = req.query.page < 1 ? 1 : req.query.page
+        limit = req.query.size - 0 || 4
+        status = req.query.status || "PUBLISHED"
+    }
+    skip = limit * (page - 1)
 
-                    },
-                    password: "",
-                    slug: "",
-                    status: "", //"DRAFT" "INTIMATE" "PUBLISHED" "RECYCLE"
-                    summary: "",
-                    tags: [
-                        {
-                            createTime: "",
-                            fullPath: "",
-                            id: 123,
-                            name: "",
-                            slug: "",
-                            thumbnail: ""
-                        }],
-                    template: "",
-                    thumbnail: "",
-                    title: "",
-                    topPriority: 0,
-                    topped: true,
-                    updateTime: "",
-                    visits: 10,
-                    wordCount: 100
+    db.Article.find({ status: status }).sort({ createTime: -1 }).limit(limit).skip(skip).exec()
+        .then((articles) => {
+            let size = articles.length > 0 ? articles.length : 0
+            let pages = parseInt(size / limit) + 1
+            res.send({
+                data: {
+                    content: articles,
+                    hasContent: size > 0,
+                    hasNext: page < pages,
+                    hasPrevious: page != 1,
+                    isEmpty: false,
+                    isFirst: page == 1,
+                    page: page,
+                    pages: pages,
+                    rpp: 1,
+                    total: size
                 }
-            ],
-            hasContent: true,
-            hasNext: true,
-            hasPrevious: true,
-            isEmpty: false,
-            isFirst: false,
-            page: 1,
-            pages: 2,
-            rpp: 1,
-            total: 20
-        }
-    })
-})
-router.get('/api/content/posts/search', (req, res) => {
-    const sort = req.query.sort
-    const desc = req.query.desc
-    const keyword = req.query.keyword
-    res.status(200).send({
-        data: {
-            content: [
-                {
-                    createTime: "",
-                    disallowComment: true,
-                    editTime: "",
-                    editorType: "MARKDOWN", // "RICHTEXT"
-                    fullPath: "",
-                    id: 123,
-                    likes: 0,
-                    metaDescription: "",
-                    metaKeywords: "",
-                    metas: {
-
-                    },
-                    password: "",
-                    slug: "",
-                    status: "", //"DRAFT" "INTIMATE" "PUBLISHED" "RECYCLE"
-                    summary: "",
-                    tags: [
-                        {
-                            createTime: "",
-                            fullPath: "",
-                            id: 123,
-                            name: "",
-                            slug: "",
-                            thumbnail: ""
-                        }],
-                    template: "",
-                    thumbnail: "",
-                    title: "",
-                    topPriority: 0,
-                    topped: true,
-                    updateTime: "",
-                    visits: 10,
-                    wordCount: 100
-                }
-            ],
-            hasContent: true,
-            hasNext: true,
-            hasPrevious: true,
-            isEmpty: false,
-            isFirst: false,
-            page: 1,
-            pages: 2,
-            rpp: 1,
-            total: 20
-        }
-    })
+            })
+        })
 })
 
 router.get('/api/content/posts/:id', (req, res) => {
-    const id = req.params.id
-    res.status(200).send({
-        data: {
-            categories: [
-                {
-                    createTime: "",
-                    description: "",
-                    fullPath: "",
-                    id: 123,
-                    name: "",
-                    parentId: "",
-                    password: "",
-                    slug: "",
-                    thumbnail: ""
-                }
-            ],
-            categoryIds: 1234,
-            commentCount: 10,
-            createTime: "",
-            disallowComment: true,
-            editTime: "",
-            editorType: "MARKDOWN", // "RICHTEXT"
-            fullPath: "",
-            id: 123,
-            likes: 0,
-            metaDescription: "",
-            metaKeywords: "",
-            metas: [
-                {
-                    createTime: "",
-                    id: 1,
-                    key: "",
-                    postId: 1,
-                    value: "test value"
-                }
-            ],
-            originalContent: "test originalContent",
-            password: "",
-            slug: "",
-            status: "", //"DRAFT" "INTIMATE" "PUBLISHED" "RECYCLE"
-            summary: "",
-            tags: [
-                {
-                    createTime: "",
-                    fullPath: "",
-                    id: 123,
-                    name: "",
-                    slug: "",
-                    thumbnail: ""
-                }],
-            template: "",
-            thumbnail: "",
-            title: "",
-            topPriority: 0,
-            topped: true,
-            updateTime: "",
-            visits: 10,
-            wordCount: 100
+    db.Article.findOne({ id: req.params.id }, (err, doc) => {
+        if (err) {
+            console.log(err)
+        } else {
+            res.status(200).send({
+                data: doc
+            })
         }
     })
+})
+
+router.get('/api/content/posts_search', (req, res) => {
+    // page, size, sort
+    let status = ''
+    let page = 1
+    let limit = 100
+    let skip = 0
+    let key = null
+    let value = null
+    if (req.query.payload) {
+        page = req.query.payload.page
+        limit = req.query.payload.limit - 0 || 4
+        status = req.query.payload.status || "PUBLISHED"
+        key = req.query.payload.key
+        value = req.query.payload.value
+    } else {
+        page = req.query.page < 1 ? 1 : req.query.page
+        limit = req.query.size - 0 || 4
+        status = req.query.status || "PUBLISHED"
+        key = req.query.key
+        value = req.query.value
+    }
+    skip = limit * (page - 1)
+    const re = new RegExp(value, 'i')
+    if (key === 'tags') {                                       // 根据标签来搜索文章
+        const arr = value.split(' ')
+        db.Article.find({ tags: { $all: arr } })
+            .sort({ createTime: -1 }).limit(4).skip(skip).exec()
+            .then((articles) => {
+                res.send({
+                    data: {
+                        content: articles
+                    }
+                })
+            })
+    } else if (key === 'title') {                               // 根据标题的部分内容来搜索文章
+        db.Article.find({ title: re })
+            .sort({ createTime: -1 }).limit(4).skip(skip).exec()
+            .then((articles) => {
+                res.send({
+                    data: {
+                        content: articles
+                    }
+                })
+            })
+    } else if (key === 'date') {                                // 根据日期来搜索文章
+        const nextDay = value + 'T24:00:00'
+        db.Article.find({ createTime: { $gte: new Date(value), $lt: new Date(nextDay) } })
+            .sort({ createTime: -1 }).limit(4).skip(skip).exec()
+            .then((articles) => {
+                res.send({
+                    data: {
+                        content: articles
+                    }
+                })
+            })
+    } else if (key === 'categories') {                                       // 根据标签来搜索文章
+        const arr = value.split(' ')
+        db.Article.find({ categories: { $all: arr } })
+            .sort({ createTime: -1 }).limit(4).skip(skip).exec()
+            .then((articles) => {
+                res.send({
+                    data: {
+                        content: articles
+                    }
+                })
+            })
+    }
 })
 
 router.get('/api/content/links', (req, res) => {
@@ -331,74 +203,74 @@ router.get('/api/content/links', (req, res) => {
                 description: "",
                 id: 11,
                 logo: "",
-                name: "test name",
+                name: "welcome welcome welcome !!!",
                 priority: 1,
-                team: "teats team",
+                team: "team",
                 url: ""
             }
         ]
     })
 })
 
-router.get('/api/content/journalss', (req, res) => {
-    const id = req.params.id
-    res.status(200).send({
-        data: {
-            content: [
-                {
-                    commentCount: 10,
-                    content: "test content",
-                    createTime: "",
-                    id: 1,
-                    likes: 1,
-                    sourceContent: "test sourceContent",
-                    type: "INTIMATE" // "PUBLIC", 
+/**
+keyword
+page	
+size 
+sort:
+type: "INTIMATE" "PUBLIC"
+*/
+router.get('/api/content/journals', (req, res) => {
+    let keyword = req.query.keyword
+    let page = parseInt(req.query.page || 1)
+    let size = parseInt(req.query.size || 100)
+    let sort = req.query.sort || "createTime"
+    let type = req.query.type || "PUBLIC"
+    let skip = size * (page - 1)
+    db.Journal.find({ type: type, }).sort({ createTime: -1 }).limit(size).skip(skip).exec()
+        .then((journals) => {
+            let journalsSize = journals.length > 0 ? journals.length : 0
+            let pages = parseInt(journalsSize / size) + 1
+            res.send({
+                data: {
+                    content: journals,
+                    hasContent: journalsSize > 0,
+                    hasNext: page < pages,
+                    hasPrevious: page != 1,
+                    isEmpty: false,
+                    isFirst: page == 1,
+                    page: page,
+                    pages: pages,
+                    rpp: 1,
+                    total: journalsSize
                 }
-            ],
-            hasContent: true,
-            hasNext: true,
-            hasPrevious: true,
-            isEmpty: false,
-            isFirst: false,
-            page: 1,
-            pages: 2,
-            rpp: 1,
-            total: 20
-        }
+            })
+        })
+})
+
+router.post('/api/content/journals', (req, res) => {
+    let j = {
+        title: req.body.title,
+        sourceContent: req.body.title,
+        commentCount: 0,
+        createTime: new Date(),
+        content: req.body.title,
+        likes: 0,
+        type: "PUBLIC"
+    }
+    db.Journal(j).save()
+    res.send({
+        data: j
     })
 })
 
-router.get('/api/content/posts/:id/comments/list_view', (req, res) => {
-    res.status(200).send({
-        data: {
-            content: [
-                {
-                    allowNotification: true,
-                    author: "",
-                    authorUrl: "",
-                    avatar: "",
-                    content: "",
-                    createTime: "",
-                    email: "",
-                    gravatarMd5: "",
-                    id: 1,
-                    ipAddress: "",
-                    isAdmin: true,
-                    parent: {},
-                    parentId: 123,
-                    status: "", // "AUDITING" "PUBLISHED" "RECYCLE"
-                    userAgent: "",
-                }
-            ],
-            hasContent: true,
-            hasNext: true,
-            hasPrevious: true,
-            isEmpty: false,
-            isFirst: false,
-            page: 1,
-            pages: 2,
-            rpp: 1,
-            total: 20
+// likes
+router.put('/api/content/posts/{postId}/likes', (req, res) => {
+    const id = req.params.id
+    db.Article.updateOne({ id: id }, { $inc: { likes: 1 } }, (err, data) => {
+        if (err) {
+            console.log(err)
+        } else {
+            res.status(200).send('succeed in updating like')
         }
     })
 })

@@ -3,8 +3,10 @@ const express = require('express')
 const bodyParser = require('body-parser')
 var cookieParser = require('cookie-parser');
 const route = require('./routes/index.js')
+const appConfig = require('./config')
 const logConfig = require('./config/log4js').config
 var path = require('path');
+var fs = require('fs');
 
 var log4js = require('log4js');
 var app = express()
@@ -21,12 +23,25 @@ app.use(log4js.connectLogger(log4js.getLogger("http"), { level: 'auto' }));
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 // Body Parser & Cookie， limit url/body length
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ limit: '100mb', extended: true }));
+app.use(express.json({ limit: '22mb' }));
+app.use(express.urlencoded({ limit: '22mb', extended: true }));
 app.use(cookieParser());
 
 // muilt
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(express.static(path.join(appConfig.doucmentPath)));
+const pdfPath = path.join(appConfig.doucmentPath, 'pdf')
+const imgPath = path.join(appConfig.doucmentPath, 'image')
+if (!fs.existsSync(pdfPath)) {
+    fs.mkdirSync(pdfPath)
+}
+if (!fs.existsSync(imgPath)) {
+    fs.mkdirSync(imgPath)
+}
+app.use(express.static(path.join(appConfig.doucmentPath)));
+app.use(express.static(pdfPath));
+app.use(express.static(imgPath));
 
 // app.use(history({
 //     verbose: true,
@@ -57,6 +72,7 @@ app.use(function (req, res, next) {
 // error handler
 app.use(function (err, req, res, next) {
     console.error("Something went wrong:", err);
+    console.error("Something went wrong req:", req.headers);
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};

@@ -31,8 +31,10 @@ export default {
         ...mapMutations(['set_user']),
         confirm (name, password) {
             this.login({name: name, password: password}).then((res) => {
+                console.log('....', JSON.stringify(res))
+                let data = res.data
                 this.info = '正在登录中...'
-                this.set_user(res.data)
+                this.set_user(data.data)
                 this.$router.push({name: 'posts'})
             }).catch((err) => {
                 console.log(err)

@@ -24,8 +24,8 @@
             ></textarea>
             <div class="preview animated fadeIn" v-if="!isMarked" v-html="mdHtml" tabIndex="1" v-focus></div>
         </div>
-        <button class="publish" @click="saveArticle($route.query.aid)"><span>发布文章</span></button>
-        <button class="draft" @click="saveDraft($route.query.aid)"><span>存为草稿</span></button>
+        <button class="publish" @click="saveArticle($route.query.id)"><span>发布文章</span></button>
+        <button class="draft" @click="saveDraft($route.query.id)"><span>存为草稿</span></button>
     </div>
 </template>
 
@@ -65,10 +65,10 @@ export default {
         }
     },
     created () {
-        const aid = this.$route.query.aid
+        const id = this.$route.query.id
         this.isSaving_toggle(false)
-        if (aid) {
-            return this.getArticle(aid)
+        if (id) {
+            return this.getArticle(id)
         }
         this.set_article({
             content: '',
@@ -94,8 +94,8 @@ export default {
         ...mapState(['article', 'isSaving', 'dialog']),
         mdContent: {
             get () {
-                this.mdHtml = marked(this.article.content || '', { renderer: renderer })
-                return this.article.content
+                this.mdHtml = marked(this.article.originalContent || '', { renderer: renderer })
+                return this.article.originalContent
             },
             set (value) { this.update_post_content(value) }
         },
