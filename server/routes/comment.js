@@ -81,7 +81,7 @@ router.get('/api/content/options/keys/comment_api_enabled', (req, res) => {
     })
 })
 
-// add Commont, not admin
+// add Commont, not admin 
 router.post('/api/content/posts/comments', (req, res) => {
     let comment = {
         imgName: req.body.imgName,
@@ -133,7 +133,40 @@ router.post('/api/content/posts/comments', (req, res) => {
     })
 })
 
-// add Commont
+// adming replay
+// /api/admin/posts/comments
+router.post('/api/admin/posts/comments', (req, res) => {
+    let comment = {
+        imgName: req.body.imgName,
+        allowNotification: true,
+        author: req.body.author,
+        authorUrl: "",
+        content: req.body.content,
+        email: req.body.email,
+        parentId: req.body.id,
+        postId: req.body.postId,
+        createTime: new Date(),
+        status: "AUDITING",
+        like: 0
+    }
+    let repalys = /^@(.*):/.exec(req.body.content)
+    const reviewer = repalys[1]  ? repalys[1] : ""
+    db.Comment.findOne({ author: reviewer, postId: req.body.postId,  }, (err, doc) => {
+        const url = 'https://www.xxx.cn' + req.body.curPath
+        const replyEmail = doc.email
+        const content = emailForm('欢迎常来我的博客', reviewer, req.body.author, '回复了你的评论', req.body.content, url)
+        // mail.send(replyEmail, '您在FatDong的博客有一条新评论', content, res)
+    })
+
+    db.Comment(comment).save()
+    res.status(200).send({
+        data: {
+            comment
+        }
+    })
+})
+
+// add Commont         
 router.post('/api/admin/content/posts/comments', (req, res) => {
     let comment = {
         imgName: req.body.imgName,
@@ -259,4 +292,49 @@ router.get('/api/content/posts/:id/comments/list_view', (req, res) => {
         })
     }
 })
+
+router.get('/api/admin/posts/comments/{postId}/tree_view', (req, res) => {
+    let articleId = null
+    let sortKey = null
+    if (req.query.payload) {
+        articleId = req.query.payload.id
+        sortKey = req.query.payload.sort
+    } else {
+        articleId = req.params.id
+        sortKey = req.query.sort
+    }
+    if (!articleId || articleId === undefined) {
+        articleId = null
+    }
+    if (sortKey === 'date') {
+        db.Comment.find({ postId: articleId }, returnCommentCols).sort({ createTime: -1 }).exec()
+            .then((comments) => {
+                SendComment(comments, res)
+            })
+    } else if (sortKey === 'like') {
+        db.Comment.find({ postId: articleId }, returnCommentCols).sort({ like: -1 }).exec()
+            .then((comments) => {
+                SendComment(comments, res)
+            })
+    } else {
+        db.Comment.find({ postId: articleId }, returnCommentCols).exec().then((comments) => {
+            let size = comments.length
+            res.status(200).send({
+                data: {
+                    content: comments,
+                    hasContent: true,
+                    hasNext: true,
+                    hasPrevious: true,
+                    isEmpty: false,
+                    isFirst: false,
+                    page: 1,
+                    pages: 2,
+                    rpp: 1,
+                    total: size
+                }
+            })
+        })
+    }
+})
+
 module.exports = router
