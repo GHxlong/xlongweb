@@ -40,7 +40,10 @@
             <el-button size="mini"
                        icon="el-icon-view"
                        @click="onViewDocument(scope.row, scope.$index)">
-
+            </el-button>
+            <el-button size="mini"
+                       icon="el-icon-delete"
+                       @click="onDelDocument(scope.row, scope.$index)">
             </el-button>
           </template>
         </el-table-column>
@@ -77,10 +80,13 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['getDocumentList']),
+    ...mapActions(['getDocumentList', 'delDocument']),
     ...mapMutations(['set_headline', 'set_dialog']),
     onViewDocument(row) {
       window.open(row.src, '_blank')
+    },
+    onDelDocument(row) {
+      this.delDocument({ id: row.id })
     },
   },
 }

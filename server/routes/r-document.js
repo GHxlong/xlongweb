@@ -105,4 +105,14 @@ router.post('/api/document/upload', confirmToken, (req, res) => {
         });
     }
 })
+
+router.delete('/api/document/:id', confirmToken, (req, res) => {
+    db.Files.remove({ id: req.params.id }, (err, data) => {
+        if (err) {
+            console.log(err)
+        } 
+        res.status(200).send('succeed in deleting ---' + req.params.id)
+    })
+
+})
 module.exports = router;

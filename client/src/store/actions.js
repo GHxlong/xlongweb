@@ -197,5 +197,11 @@ export default {
     },
     uploadFilesReq({ commit }, fd, config){
         return Vue.http.post('/api/document/upload', fd, config).catch((err) => { console.log(err) })
+    },
+    delDocument({ dispatch }, payload) {
+        return Vue.http.delete('/api/document/' + payload.id)
+        .then(() => {
+            dispatch('getDocumentList', { page: payload.page, limit: 8 })
+        }).catch((err) => { console.log(err) })
     }
 }
